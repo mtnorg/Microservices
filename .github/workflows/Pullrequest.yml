@@ -1,0 +1,39 @@
+name: Demo to create automaticPR
+on:
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  AutoPRCreation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking out code
+        uses: actions/checkout@v2
+        
+      - name: extract git commit data
+        uses: rlespinasse/git-commit-data-action@v1.x
+        
+      - name: Update author information
+        run: echo ${{env.GIT_COMMIT_AUTHOR_NAME }} > AUTHOR
+        
+      - name: Raise PR
+        id: PR1
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: "auto-pr-branch1"
+          base: master
+          title: "demo for auto pr"
+          committer: ${{env.GIT_COMMIT_AUTHOR_NAME }} <${{env.GIT_COMMIT_AUTHOR_EMAIL }}">
+          author: ${{env.GIT_COMMIT_AUTHOR_NAME }} <${{env.GIT_COMMIT_AUTHOR_EMAIL }}">
+          body:
+            This is to show automatic PR creation
+          token: ${{secrets.GITHUB_TOKEN }}
+          #delete-branch: true
+
+      - name: Merge Pull request1
+        uses: juliangruber/merge-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.PR1.outputs.pull-request-number }}
+          method: squash
